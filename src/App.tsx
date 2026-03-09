@@ -200,7 +200,11 @@ function App() {
     () =>
       mediaLibrary
         .filter((item) => progressMap[item.id])
-        .sort((a, b) => (progressMap[b.id]?.updatedAt ?? "").localeCompare(progressMap[a.id]?.updatedAt ?? "")),
+        .sort(
+          (a, b) =>
+            new Date(progressMap[b.id]?.updatedAt ?? 0).getTime() -
+            new Date(progressMap[a.id]?.updatedAt ?? 0).getTime(),
+        ),
     [progressMap],
   );
 
