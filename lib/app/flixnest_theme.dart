@@ -8,6 +8,7 @@ class FlixNestTheme {
   static const elevated = Color(0xFF141F31);
   static const border = Color(0x33FFFFFF);
   static const textMuted = Color(0xFFAAB8CF);
+  static const navigationBarBackground = Color(0xCC0D1420);
   static const violet = Color(0xFF8B5CFF);
   static const cyan = Color(0xFF08D9D6);
   static const pink = Color(0xFFFF4DA6);
@@ -40,7 +41,7 @@ class FlixNestTheme {
         headlineLarge: const TextStyle(
           fontSize: 54,
           fontWeight: FontWeight.w800,
-          height: 0.94,
+          height: 1.0,
           letterSpacing: -1.8,
         ),
         headlineMedium: const TextStyle(
@@ -83,7 +84,7 @@ class FlixNestTheme {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: const Color(0xCC0D1420),
+        backgroundColor: navigationBarBackground,
         indicatorColor: violet.withOpacity(0.18),
         labelTextStyle: MaterialStateProperty.resolveWith(
           (states) => TextStyle(
@@ -150,4 +151,12 @@ class FlixNestSpace {
   static const xl = 32.0;
   static const xxl = 40.0;
   static const hero = 48.0;
+}
+
+class FlixNestBreakpoints {
+  const FlixNestBreakpoints._();
+
+  static const sidebarRail = 1200.0;
+  static const homeSplit = 1080.0;
+  static const contentSplit = 980.0;
 }

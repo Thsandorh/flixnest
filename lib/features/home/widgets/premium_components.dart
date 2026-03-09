@@ -24,7 +24,9 @@ class FrostPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final panelColor = gradient == null ? (background ?? Colors.white.withOpacity(0.05)) : background;
+    final panelColor = gradient == null
+        ? (background ?? Colors.white.withOpacity(0.05))
+        : (background ?? Colors.transparent);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
@@ -254,19 +256,19 @@ class HeroBanner extends StatelessWidget {
                     background: Colors.black.withOpacity(0.22),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         SectionHeading(
                           eyebrow: 'Playback intelligence',
                           title: 'Adaptive HDR-first routing',
                           subtitle: 'Auto mode favors ExoPlayer for DV/HDR titles, drops to MPV for edge codecs, and keeps subtitle + intro metadata in sync.',
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         ProgressBand(progress: 0.58, buffer: 0.84),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         _SnapshotRow(label: 'Renderer', value: 'GPU-next'),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         _SnapshotRow(label: 'Buffer health', value: 'Stable / 1.4x headroom'),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         _SnapshotRow(label: 'Quick action', value: 'Hold to accelerate quiet scenes'),
                       ],
                     ),
@@ -349,12 +351,18 @@ class ProgressBand extends StatelessWidget {
 class MediaPosterCard extends StatelessWidget {
   const MediaPosterCard({super.key, required this.item, this.width = 260, this.emphasized = false});
 
+  static const _defaultPosterProgress = 0.18;
+  static const _defaultPosterBuffer = 0.52;
+  static const _bufferOffset = 0.24;
+
   final MediaItem item;
   final double width;
   final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
+    final progress = _posterProgress(item.progress);
+    final buffer = _posterBuffer(item.progress);
     final height = emphasized ? 360.0 : 300.0;
     return SizedBox(
       width: width,
@@ -414,7 +422,7 @@ class MediaPosterCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(item.tagline, maxLines: 2, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 14),
-              ProgressBand(progress: item.progress == 0 ? 0.18 : item.progress, buffer: (item.progress == 0 ? 0.52 : item.progress + 0.24).clamp(0.0, 1.0).toDouble()),
+              ProgressBand(progress: progress, buffer: buffer),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -430,6 +438,18 @@ class MediaPosterCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double _posterProgress(double rawProgress) {
+    return rawProgress == 0 ? _defaultPosterProgress : rawProgress;
+  }
+
+  double _posterBuffer(double rawProgress) {
+    if (rawProgress == 0) {
+      return _defaultPosterBuffer;
+    }
+
+    return (rawProgress + _bufferOffset).clamp(0.0, 1.0).toDouble();
   }
 }
 
@@ -488,7 +508,7 @@ class AppTopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 28, 28, 20),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final compact = constraints.maxWidth < 980;
+          final shouldExpandSearch = constraints.maxWidth < FlixNestBreakpoints.contentSplit;
           final header = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -503,19 +523,22 @@ class AppTopBar extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: compact ? constraints.maxWidth : 340,
+                width: shouldExpandSearch ? constraints.maxWidth : 340,
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'Search movies, series, anime, addons...',
                     prefixIcon: const Icon(Icons.search_rounded),
-                    suffixIcon: const Icon(Icons.tune_rounded),
+                    suffixIcon: IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.tune_rounded),
+                    ),
                   ),
                 ),
               ),
               FilterChip(
                 selected: heroEnabled,
                 onSelected: onHeroChanged,
-                label: const Text('Hero mode'),
+                label: const Text('Hero section'),
                 avatar: const Icon(Icons.auto_awesome_rounded, size: 18),
               ),
               PopupMenuButton<int>(
@@ -543,7 +566,7 @@ class AppTopBar extends StatelessWidget {
             ],
           );
 
-          if (compact) {
+          if (shouldExpandSearch) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -578,7 +601,7 @@ class SidebarNavigation extends StatelessWidget {
     (Icons.video_library_rounded, 'Library'),
     (Icons.extension_rounded, 'Addons'),
     (Icons.play_circle_rounded, 'Playback'),
-    (Icons.hub_rounded, 'Control'),
+    (Icons.settings_rounded, 'Control'),
   ];
 
   @override
@@ -786,12 +809,32 @@ class DownloadRowCard extends StatelessWidget {
   }
 }
 
-class AddonCard extends StatelessWidget {
-  const AddonCard({super.key, required this.addon, required this.autoFallback, required this.onPush});
+class AddonCard extends StatefulWidget {
+  const AddonCard({
+    super.key,
+    required this.addon,
+    required this.autoFallback,
+    required this.onRename,
+    required this.onPush,
+  });
 
   final AddonSource addon;
   final bool autoFallback;
+  final VoidCallback onRename;
   final VoidCallback onPush;
+
+  @override
+  State<AddonCard> createState() => _AddonCardState();
+}
+
+class _AddonCardState extends State<AddonCard> {
+  late bool _enabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _enabled = widget.addon.enabled;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -805,13 +848,16 @@ class AddonCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(addon.name, style: Theme.of(context).textTheme.titleLarge),
+                    Text(widget.addon.name, style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 6),
-                    Text(addon.kind, style: Theme.of(context).textTheme.bodyMedium),
+                    Text(widget.addon.kind, style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),
-              Switch(value: addon.enabled, onChanged: (_) {}),
+              Switch(
+                value: _enabled,
+                onChanged: (value) => setState(() => _enabled = value),
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -819,21 +865,30 @@ class AddonCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              GradientBadge(label: '${addon.catalogs} catalogs'),
-              GradientBadge(label: 'Priority ${addon.priority}'),
-              if (addon.pushReady) const GradientBadge(label: 'TV PUSH', highlight: true),
-              if (autoFallback) const GradientBadge(label: 'FALLBACK READY'),
+              GradientBadge(label: '${widget.addon.catalogs} catalogs'),
+              GradientBadge(label: 'Priority ${widget.addon.priority}'),
+              GradientBadge(label: _enabled ? 'ENABLED' : 'DISABLED'),
+              if (widget.addon.pushReady) const GradientBadge(label: 'TV PUSH', highlight: true),
+              if (widget.autoFallback) const GradientBadge(label: 'FALLBACK READY'),
             ],
           ),
           const SizedBox(height: 16),
-          Text(addon.health),
+          Text(widget.addon.health),
           const SizedBox(height: 18),
           Row(
             children: [
-              TextButton.icon(onPressed: () {}, icon: const Icon(Icons.edit_rounded), label: const Text('Rename')),
+              TextButton.icon(
+                onPressed: widget.onRename,
+                icon: const Icon(Icons.edit_rounded),
+                label: const Text('Rename'),
+              ),
               const Spacer(),
-              if (addon.pushReady)
-                FilledButton.tonalIcon(onPressed: onPush, icon: const Icon(Icons.cast_connected_rounded), label: const Text('Push')),
+              if (widget.addon.pushReady)
+                FilledButton.tonalIcon(
+                  onPressed: widget.onPush,
+                  icon: const Icon(Icons.cast_connected_rounded),
+                  label: const Text('Push'),
+                ),
             ],
           ),
         ],

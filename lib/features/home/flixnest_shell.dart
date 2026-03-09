@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../app/flixnest_theme.dart';
 import '../../core/data/demo_catalog.dart';
 import '../../core/models/media_models.dart';
 import '../../core/services/network_probe_service.dart';
@@ -29,55 +30,59 @@ class _FlixNestShellState extends State<FlixNestShell> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.sizeOf(context).width >= 1200;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final shouldShowSidebar = constraints.maxWidth >= FlixNestBreakpoints.sidebarRail;
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topLeft,
-            radius: 1.3,
-            colors: [Color(0xFF18233A), Color(0xFF0D1420), Color(0xFF0A0F17)],
-          ),
-        ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              if (isWide)
-                SidebarNavigation(
-                  index: _tabIndex,
-                  onSelected: (value) => setState(() => _tabIndex = value),
-                ),
-              Expanded(
-                child: Column(
-                  children: [
-                    AppTopBar(
-                      profile: DemoCatalog.profiles[_selectedProfile],
-                      heroEnabled: _heroEnabled,
-                      onHeroChanged: (value) => setState(() => _heroEnabled = value),
-                      onProfileSelected: (index) => setState(() => _selectedProfile = index),
+        return Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.topLeft,
+                radius: 1.3,
+                colors: [Color(0xFF18233A), Color(0xFF0D1420), Color(0xFF0A0F17)],
+              ),
+            ),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  if (shouldShowSidebar)
+                    SidebarNavigation(
+                      index: _tabIndex,
+                      onSelected: (value) => setState(() => _tabIndex = value),
                     ),
-                    Expanded(child: _buildBody()),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        AppTopBar(
+                          profile: DemoCatalog.profiles[_selectedProfile],
+                          heroEnabled: _heroEnabled,
+                          onHeroChanged: (value) => setState(() => _heroEnabled = value),
+                          onProfileSelected: (index) => setState(() => _selectedProfile = index),
+                        ),
+                        Expanded(child: _buildBody()),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          bottomNavigationBar: shouldShowSidebar
+              ? null
+              : NavigationBar(
+                  selectedIndex: _tabIndex,
+                  onDestinationSelected: (value) => setState(() => _tabIndex = value),
+                  destinations: const [
+                    NavigationDestination(icon: Icon(Icons.home_rounded), label: 'Home'),
+                    NavigationDestination(icon: Icon(Icons.video_library_rounded), label: 'Library'),
+                    NavigationDestination(icon: Icon(Icons.extension_rounded), label: 'Addons'),
+                    NavigationDestination(icon: Icon(Icons.play_circle_rounded), label: 'Playback'),
+                    NavigationDestination(icon: Icon(Icons.settings_rounded), label: 'Control'),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: isWide
-          ? null
-          : NavigationBar(
-              selectedIndex: _tabIndex,
-              onDestinationSelected: (value) => setState(() => _tabIndex = value),
-              destinations: const [
-                NavigationDestination(icon: Icon(Icons.home_rounded), label: 'Home'),
-                NavigationDestination(icon: Icon(Icons.video_library_rounded), label: 'Library'),
-                NavigationDestination(icon: Icon(Icons.extension_rounded), label: 'Addons'),
-                NavigationDestination(icon: Icon(Icons.play_circle_rounded), label: 'Playback'),
-                NavigationDestination(icon: Icon(Icons.hub_rounded), label: 'Control'),
-              ],
-            ),
+        );
+      },
     );
   }
 
@@ -106,7 +111,7 @@ class _FlixNestShellState extends State<FlixNestShell> {
         const SizedBox(height: 28),
         LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth > 1080;
+            final wide = constraints.maxWidth > FlixNestBreakpoints.homeSplit;
             final continueWatching = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -133,14 +138,14 @@ class _FlixNestShellState extends State<FlixNestShell> {
             );
 
             final rightRail = Column(
-              children: const [
+              children: [
                 StatSpotlightCard(
                   icon: Icons.sync_alt_rounded,
                   title: 'Sync pulse',
                   body: 'Trakt watchlists, MAL/Kitsu anime progress, and Continue Watching checkpoints stay mirrored across device classes.',
                   highlight: '12 live sync events',
                 ),
-                SizedBox(height: 18),
+                const SizedBox(height: 18),
                 StatSpotlightCard(
                   icon: Icons.tv_rounded,
                   title: 'Living-room ready',
@@ -204,7 +209,7 @@ class _FlixNestShellState extends State<FlixNestShell> {
         const SizedBox(height: 20),
         LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth > 980;
+            final wide = constraints.maxWidth > FlixNestBreakpoints.contentSplit;
             final profiles = FrostPanel(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,6 +303,7 @@ class _FlixNestShellState extends State<FlixNestShell> {
                   child: AddonCard(
                     addon: addon,
                     autoFallback: _autoFallback,
+                    onRename: () => _showMessage('Rename flow for ${addon.name} opened.'),
                     onPush: () => _showMessage('${addon.name} pushed to the TV profile.'),
                   ),
                 ),
@@ -451,7 +457,7 @@ class _FlixNestShellState extends State<FlixNestShell> {
               child: FrostPanel(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('Connected services', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
                     SizedBox(height: 18),
                     ServiceConnectionCard(name: 'Trakt', detail: 'Watchlist import • Continue Watching sync', icon: Icons.movie_filter_rounded),
