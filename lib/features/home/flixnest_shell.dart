@@ -1312,7 +1312,7 @@ class _EnumSelector<T extends Enum> extends StatelessWidget {
           children: values
               .map(
                 (item) => ChoiceChip(
-                  label: Text(item.name.replaceAllMapped(RegExp(r'([A-Z])'), (match) => '-${match.group(1)}').replaceFirst('-', '').replaceAll('-', ' ').toUpperCase()),
+                  label: Text(_formatEnumName(item.name)),
                   selected: value == item,
                   onSelected: (_) => onChanged(item),
                 ),
@@ -1322,6 +1322,13 @@ class _EnumSelector<T extends Enum> extends StatelessWidget {
       ],
     );
   }
+}
+
+String _formatEnumName(String value) {
+  return value
+      .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}')
+      .trim()
+      .toUpperCase();
 }
 
 class _NetworkResultTile extends StatelessWidget {
