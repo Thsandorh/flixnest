@@ -1,0 +1,15 @@
+.dart_tool/
+.packages
+.pub/
+build/
+coverage/
+.idea/
+.vscode/
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+ios/Flutter/
+linux/flutter/
+macos/Flutter/
+windows/flutter/
