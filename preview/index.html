@@ -3,137 +3,237 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FlixNest Preview</title>
+  <title>FlixNest Premium Preview</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #090b12;
-      --panel: rgba(255,255,255,0.05);
-      --border: rgba(255,255,255,0.08);
-      --muted: #b6bfd4;
-      --accent: #7c5cff;
-      --accent2: #08d9d6;
+      --bg: #0a0f17;
+      --bg2: #101826;
+      --panel: rgba(255,255,255,0.055);
+      --border: rgba(255,255,255,0.09);
+      --muted: #aab8cf;
+      --text: #f4f7ff;
+      --violet: #8b5cff;
+      --cyan: #08d9d6;
+      --pink: #ff4da6;
+      --amber: #ffb84d;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-      background: radial-gradient(circle at top left, #10182b, var(--bg) 38%), var(--bg);
-      color: white;
-      padding: 32px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, #1a2640 0, rgba(26,38,64,0.5) 24%, transparent 48%),
+        radial-gradient(circle at top right, rgba(139,92,255,0.22) 0, transparent 28%),
+        linear-gradient(180deg, #101826, var(--bg));
+      padding: 24px;
     }
-    .shell { max-width: 1420px; margin: 0 auto; }
-    .topbar, .hero, .panel { border: 1px solid var(--border); border-radius: 28px; }
+    .shell { max-width: 1540px; margin: 0 auto; display: grid; grid-template-columns: 136px 1fr; gap: 22px; }
+    .sidebar, .topbar, .panel, .hero, .poster { border: 1px solid var(--border); }
+    .sidebar {
+      border-radius: 32px; padding: 18px 12px; background: rgba(255,255,255,0.04);
+      display: flex; flex-direction: column; gap: 10px; min-height: calc(100vh - 48px);
+      backdrop-filter: blur(24px);
+    }
+    .logo {
+      width: 74px; height: 74px; margin: 0 auto 18px; border-radius: 999px;
+      background: linear-gradient(135deg, var(--violet), var(--cyan)); color: #09111a;
+      display: grid; place-items: center; font-size: 30px; font-weight: 900;
+      box-shadow: 0 20px 40px rgba(139,92,255,0.35);
+    }
+    .navitem {
+      border-radius: 22px; padding: 14px 10px; text-align: center; color: white; font-size: 12px; font-weight: 800;
+      background: transparent;
+    }
+    .navitem.active { background: linear-gradient(135deg, var(--violet), var(--cyan)); color: #09111a; }
+    .content { display: flex; flex-direction: column; gap: 20px; }
     .topbar {
-      display: flex; justify-content: space-between; gap: 16px; align-items: center;
-      margin-bottom: 20px; padding: 18px 22px; background: var(--panel);
+      border-radius: 28px; padding: 22px 24px; background: rgba(255,255,255,0.04);
+      display: flex; align-items: center; gap: 14px; justify-content: space-between; backdrop-filter: blur(20px);
     }
-    .search { min-width: 280px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 18px; padding: 12px 16px; color: var(--muted); }
+    .title { font-size: 36px; font-weight: 900; letter-spacing: -1px; }
+    .subtitle { color: var(--muted); margin-top: 6px; }
+    .search {
+      min-width: 320px; padding: 16px 18px; border-radius: 22px; background: rgba(255,255,255,0.05);
+      color: var(--muted); border: 1px solid var(--border);
+    }
     .hero {
-      display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; padding: 28px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      box-shadow: 0 24px 60px rgba(124,92,255,0.25);
+      position: relative; overflow: hidden; border-radius: 36px; padding: 48px;
+      background: linear-gradient(120deg, #8b5cff 0%, #08d9d6 54%, #09111c 100%);
+      box-shadow: 0 30px 70px rgba(139,92,255,0.3);
+      display: grid; grid-template-columns: 1.4fr 0.8fr; gap: 24px;
     }
-    .badges, .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .badge, .chip {
-      border: 1px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.2);
-      border-radius: 999px; padding: 8px 12px; font-weight: 700; font-size: 13px;
+    .hero:before {
+      content: ""; position: absolute; width: 360px; height: 360px; border-radius: 999px;
+      right: -70px; top: -70px; background: rgba(255,255,255,0.08);
     }
-    h1 { font-size: 56px; line-height: 1; margin: 16px 0 12px; }
-    p { color: rgba(255,255,255,0.92); line-height: 1.55; }
-    .cta { display: flex; gap: 12px; margin-top: 18px; }
+    .eyebrows, .chips, .cta, .poster-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip {
+      border-radius: 999px; padding: 9px 12px; font-size: 12px; font-weight: 800;
+      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.08);
+    }
+    .chip.primary { background: linear-gradient(135deg, var(--violet), var(--cyan)); color: #09111a; }
+    h1 { font-size: 72px; line-height: 0.92; letter-spacing: -2px; margin: 22px 0 16px; }
+    p { margin: 0; line-height: 1.6; color: rgba(255,255,255,0.93); max-width: 620px; }
+    .cta { margin-top: 28px; }
     .btn {
-      border-radius: 18px; padding: 12px 16px; border: 0; font-weight: 700;
-      background: rgba(255,255,255,0.15); color: white;
+      border-radius: 18px; padding: 16px 20px; border: 1px solid rgba(255,255,255,0.1);
+      font-weight: 800; background: rgba(255,255,255,0.08); color: white;
     }
-    .btn.primary { background: #11131b; }
-    .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; margin-top: 18px; }
-    .panel { background: var(--panel); padding: 20px; }
-    .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-    .card {
-      min-height: 210px; border-radius: 24px; padding: 18px;
-      background: linear-gradient(135deg, rgba(252,92,125,0.9), rgba(106,130,251,0.9));
-      display: flex; flex-direction: column;
+    .btn.primary { background: white; color: #09111a; border-color: white; }
+    .snapshot {
+      border-radius: 30px; padding: 24px; background: rgba(0,0,0,0.2); backdrop-filter: blur(20px);
+      align-self: end;
     }
-    .card:nth-child(2) { background: linear-gradient(135deg, rgba(17,153,142,0.9), rgba(56,239,125,0.9)); }
-    .track { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.2); overflow: hidden; margin-top: auto; }
-    .track > span { display: block; height: 100%; width: 58%; background: linear-gradient(90deg, var(--accent2), white); }
-    ul { padding-left: 18px; color: var(--muted); }
-    @media (max-width: 980px) {
-      .hero, .grid, .cards { grid-template-columns: 1fr; }
-      h1 { font-size: 42px; }
+    .snapshot h3, .section h3 { margin: 0 0 14px; font-size: 24px; letter-spacing: -0.5px; }
+    .track { height: 10px; border-radius: 999px; background: rgba(255,255,255,0.12); overflow: hidden; margin: 16px 0 12px; }
+    .track span { display: block; height: 100%; width: 58%; background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink)); }
+    .meta-line { display: flex; justify-content: space-between; gap: 14px; color: white; margin-top: 12px; }
+    .grid { display: grid; grid-template-columns: 1.45fr 0.72fr; gap: 20px; }
+    .section, .panel {
+      border-radius: 30px; background: var(--panel); padding: 24px; backdrop-filter: blur(18px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .section-head { margin-bottom: 18px; }
+    .eyebrow { color: var(--cyan); text-transform: uppercase; font-size: 12px; letter-spacing: 1.8px; font-weight: 800; }
+    .cards { display: flex; gap: 18px; overflow: hidden; }
+    .poster {
+      width: 274px; min-height: 320px; border-radius: 30px; padding: 18px; display: flex; flex-direction: column;
+      background: linear-gradient(180deg, rgba(139,92,255,0.95), rgba(8,217,214,0.78), #09111a);
+      box-shadow: 0 22px 42px rgba(139,92,255,0.18);
+    }
+    .poster:nth-child(2) { background: linear-gradient(180deg, rgba(255,77,166,0.95), rgba(139,92,255,0.78), #09111a); }
+    .poster:nth-child(3) { background: linear-gradient(180deg, rgba(255,184,77,0.95), rgba(8,217,214,0.76), #09111a); }
+    .poster-art {
+      align-self: end; width: 92px; height: 128px; border-radius: 24px; background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.14); display: grid; place-items: center; font-size: 38px;
+    }
+    .poster-title { font-size: 30px; font-weight: 900; margin-top: auto; }
+    .poster-copy { color: rgba(255,255,255,0.88); margin-top: 6px; }
+    .poster-track { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.18); overflow: hidden; margin-top: 14px; }
+    .poster-track span { display: block; height: 100%; width: 68%; background: linear-gradient(90deg, var(--cyan), white); }
+    .spotlight { display: grid; gap: 18px; }
+    .iconbox {
+      width: 54px; height: 54px; border-radius: 18px; display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--violet), var(--cyan)); color: #09111a; font-weight: 900;
+    }
+    .small { color: var(--muted); line-height: 1.6; }
+    @media (max-width: 1160px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .hero, .grid { grid-template-columns: 1fr; }
+      .cards { overflow-x: auto; padding-bottom: 6px; }
+    }
+    @media (max-width: 760px) {
+      body { padding: 14px; }
       .topbar { flex-direction: column; align-items: flex-start; }
-      .search { width: 100%; }
+      .search { width: 100%; min-width: 0; }
+      h1 { font-size: 46px; }
+      .hero { padding: 28px; }
+      .poster { min-width: 264px; }
     }
   </style>
 </head>
 <body>
   <div class="shell">
-    <div class="topbar">
-      <div>
-        <div style="font-size:34px;font-weight:800;">FlixNest</div>
-        <div style="color:var(--muted);">Smarter streaming for phone, TV, and desktop.</div>
-      </div>
-      <div class="search">Search movies, series, anime, addons...</div>
-    </div>
+    <aside class="sidebar">
+      <div class="logo">F</div>
+      <div class="navitem active">Home</div>
+      <div class="navitem">Library</div>
+      <div class="navitem">Addons</div>
+      <div class="navitem">Playback</div>
+      <div class="navitem">Control</div>
+    </aside>
 
-    <section class="hero">
-      <div>
-        <div class="badges">
-          <span class="badge">MOVIE</span>
-          <span class="badge">Dolby Vision</span>
-          <span class="badge">HDR</span>
-          <span class="badge">Skip Intro</span>
+    <main class="content">
+      <section class="topbar">
+        <div>
+          <div class="title">FlixNest</div>
+          <div class="subtitle">A cleaner, faster streaming control plane for mobile, TV, and desktop.</div>
         </div>
-        <h1>Eclipse Protocol</h1>
-        <p>AI-curated sci-fi thriller with Dolby Vision layers, premium metadata density, cleaner logic, and a more modern streaming surface than the original reference.</p>
-        <div class="cta">
-          <button class="btn primary">Continue watching</button>
-          <button class="btn">Download</button>
-          <button class="btn">Push to TV</button>
-        </div>
-      </div>
-      <div class="panel">
-        <div style="font-size:18px;font-weight:700;margin-bottom:12px;">Playback snapshot</div>
-        <div class="chips">
-          <span class="chip">Auto → ExoPlayer for HDR/DV</span>
-          <span class="chip">External subtitles</span>
-          <span class="chip">PiP ready</span>
-          <span class="chip">GPU-next</span>
-        </div>
-        <div style="margin-top:18px;font-size:15px;color:var(--muted);">The full app source adds dedicated sections for playback tuning, addon management, sync/privacy controls, profiles, and offline downloads.</div>
-      </div>
-    </section>
+        <div class="search">Search movies, series, anime, addons...</div>
+      </section>
 
-    <section class="grid">
-      <div class="panel">
-        <div style="font-size:22px;font-weight:800;margin-bottom:14px;">Continue watching</div>
-        <div class="cards">
-          <article class="card">
-            <div class="badges"><span class="badge">anime</span><span class="badge">Intro</span></div>
-            <div style="font-size:28px;font-weight:800;margin-top:auto;">Neon Shogun</div>
-            <div>Episode 7 • 38m left</div>
-            <div class="track"><span></span></div>
-          </article>
-          <article class="card">
-            <div class="badges"><span class="badge">series</span><span class="badge">HDR</span></div>
-            <div style="font-size:28px;font-weight:800;margin-top:auto;">Arcadia Prime</div>
-            <div>S2:E4 • synced progress</div>
-            <div class="track"><span style="width:68%"></span></div>
-          </article>
+      <section class="hero">
+        <div>
+          <div class="eyebrows">
+            <span class="chip primary">MOVIE</span>
+            <span class="chip">DOLBY VISION</span>
+            <span class="chip">HDR10+</span>
+            <span class="chip">SKIP INTRO READY</span>
+          </div>
+          <h1>Eclipse<br>Protocol</h1>
+          <p>AI-curated sci-fi thriller with a more cinematic hierarchy, deeper contrast, smarter playback routing, and a premium streaming surface built for desktop, Android, and TV.</p>
+          <div class="cta">
+            <button class="btn primary">Play instantly</button>
+            <button class="btn">Download offline</button>
+            <button class="btn">Push to TV</button>
+          </div>
         </div>
-      </div>
-      <div class="panel">
-        <div style="font-size:22px;font-weight:800;margin-bottom:12px;">What’s included</div>
-        <ul>
-          <li>Adaptive shell for desktop and touch layouts</li>
-          <li>Dual engine playback control center</li>
-          <li>Addon ecosystem with push/fallback UX</li>
-          <li>Sync, privacy, profile, and parental-control panels</li>
-          <li>Cleaner architecture for future native integrations</li>
-        </ul>
-      </div>
-    </section>
+
+        <div class="snapshot">
+          <div class="eyebrow">Playback intelligence</div>
+          <h3>Adaptive HDR-first routing</h3>
+          <div class="chips">
+            <span class="chip">Auto → ExoPlayer</span>
+            <span class="chip">GPU-next</span>
+            <span class="chip">PiP ready</span>
+          </div>
+          <div class="track"><span></span></div>
+          <div class="meta-line"><span>00:38:14</span><span>01:06:08</span></div>
+          <div class="small" style="margin-top:16px;">Subtitle merge, intro-skip markers, and external-player handoff are elevated into the same cinematic playback surface.</div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="section">
+          <div class="section-head">
+            <div class="eyebrow">Continue watching</div>
+            <h3>Resume anywhere, instantly</h3>
+            <div class="small">Cross-device checkpoints, richer metadata, and cleaner poster-first browsing for mobile and TV.</div>
+          </div>
+          <div class="cards">
+            <article class="poster">
+              <div class="poster-art">▶</div>
+              <div class="poster-tags"><span class="chip">ANIME</span><span class="chip">INTRO</span></div>
+              <div class="poster-title">Neon Shogun</div>
+              <div class="poster-copy">Episode 7 • 38m left</div>
+              <div class="poster-track"><span style="width:42%"></span></div>
+            </article>
+            <article class="poster">
+              <div class="poster-art">▶</div>
+              <div class="poster-tags"><span class="chip">SERIES</span><span class="chip">HDR</span></div>
+              <div class="poster-title">Arcadia Prime</div>
+              <div class="poster-copy">S2:E4 • synced progress</div>
+              <div class="poster-track"><span style="width:68%"></span></div>
+            </article>
+            <article class="poster">
+              <div class="poster-art">▶</div>
+              <div class="poster-tags"><span class="chip">MOVIE</span><span class="chip">OFFLINE</span></div>
+              <div class="poster-title">Blue Ember</div>
+              <div class="poster-copy">Downloaded for travel mode</div>
+              <div class="poster-track"><span style="width:18%"></span></div>
+            </article>
+          </div>
+        </div>
+
+        <div class="spotlight">
+          <div class="panel">
+            <div class="iconbox">⟲</div>
+            <h3>Sync pulse</h3>
+            <div class="small">Trakt watchlists, MAL/Kitsu anime progress, and Continue Watching checkpoints stay mirrored across device classes.</div>
+            <div class="chips" style="margin-top:18px;"><span class="chip primary">12 live sync events</span></div>
+          </div>
+          <div class="panel">
+            <div class="iconbox">TV</div>
+            <h3>Living-room ready</h3>
+            <div class="small">Larger focus targets, cleaner horizontal scanning, and TV-safe information density without wasting space.</div>
+            <div class="chips" style="margin-top:18px;"><span class="chip primary">Android TV optimized</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 </body>
 </html>
