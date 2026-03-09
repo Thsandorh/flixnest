@@ -208,6 +208,22 @@ function App() {
     [progressMap],
   );
 
+  const discoverSections = useMemo(() => {
+    const preferred = ["Featured", "Trending", "New Releases"];
+    const prioritized = preferred
+      .map((name) => sections.find(([sectionName]) => sectionName === name))
+      .filter((value): value is [string, MediaItem[]] => Boolean(value));
+    const remainder = sections.filter(
+      ([sectionName]) => !preferred.includes(sectionName) && sectionName !== "Continue Watching",
+    );
+
+    return [...prioritized, ...remainder].slice(0, 3);
+  }, [sections]);
+
+  const heroCollection = useMemo(() => filteredMedia.slice(0, 4), [filteredMedia]);
+  const enabledProvidersCount = providers.filter((provider) => provider.enabled).length;
+  const linkedConnections = connections.filter((connection) => connection.connected).length;
+
   const selectedDownload = downloads.find((item) => item.mediaId === selectedMedia.id);
   const introVisible = playerTime >= selectedMedia.intro.start && playerTime <= selectedMedia.intro.end;
   const activeSubtitle = settings.subtitlesEnabled
@@ -410,73 +426,132 @@ function App() {
         {activeView === "discover" && (
           <section className="view-stack">
             {settings.showHero && (
-              <article className="hero-card" style={{ background: selectedMedia.heroGradient }}>
-                <div className="hero-content">
-                  <span className="eyebrow">{t.featured}</span>
-                  <h2>{selectedMedia.title}</h2>
-                  <p>{selectedMedia.synopsis}</p>
-                  <div className="meta-row">
-                    <span>{selectedMedia.year}</span>
-                    <span>{formatMinutes(selectedMedia.durationMinutes)}</span>
-                    <span>★ {selectedMedia.rating}</span>
-                    <span>{selectedMedia.parental.age}</span>
+              <section className="discover-hero-layout">
+                <article className="hero-card hero-card-clean" style={{ background: selectedMedia.heroGradient }}>
+                  <div className="hero-backdrop" />
+                  <div className="hero-content">
+                    <span className="eyebrow">{t.featured}</span>
+                    <h2>{selectedMedia.title}</h2>
+                    <p>{selectedMedia.synopsis}</p>
+                    <div className="meta-row">
+                      <span>{selectedMedia.year}</span>
+                      <span>{formatMinutes(selectedMedia.durationMinutes)}</span>
+                      <span>★ {selectedMedia.rating}</span>
+                      <span>{selectedMedia.parental.age}</span>
+                    </div>
+                    <div className="badge-row">
+                      {selectedMedia.genres.map((genre) => (
+                        <span key={genre} className="badge subtle">
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="hero-actions">
+                      <button type="button" className="primary-button" onClick={() => playMedia(selectedMedia.id)}>
+                        {t.playNow}
+                      </button>
+                      <button type="button" className="secondary-button" onClick={() => toggleDownload(selectedMedia.id)}>
+                        {selectedDownload ? t.removeOffline : t.queueOffline}
+                      </button>
+                    </div>
                   </div>
-                  <div className="hero-actions">
-                    <button type="button" className="primary-button" onClick={() => playMedia(selectedMedia.id)}>
-                      {t.playNow}
-                    </button>
-                    <button type="button" className="secondary-button" onClick={() => toggleDownload(selectedMedia.id)}>
-                      {selectedDownload ? t.removeOffline : t.queueOffline}
-                    </button>
+                </article>
+
+                <aside className="discover-side-stack">
+                  <article className="summary-card glass-panel">
+                    <div className="section-heading compact-heading">
+                      <div>
+                        <span className="eyebrow">Overview</span>
+                        <h3>{activeProfile.name}</h3>
+                      </div>
+                      <span className="status-pill">{t.discover}</span>
+                    </div>
+
+                    <div className="summary-metrics">
+                      <div className="metric-card glass-soft">
+                        <strong>{continueWatching.length}</strong>
+                        <span>Continue watching</span>
+                      </div>
+                      <div className="metric-card glass-soft">
+                        <strong>{enabledProvidersCount}</strong>
+                        <span>Enabled providers</span>
+                      </div>
+                      <div className="metric-card glass-soft">
+                        <strong>{linkedConnections}</strong>
+                        <span>Linked accounts</span>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article className="summary-card glass-panel">
+                    <div className="section-heading compact-heading">
+                      <div>
+                        <span className="eyebrow">Quick picks</span>
+                        <h3>Tonight in FlixNest</h3>
+                      </div>
+                    </div>
+
+                    <div className="quick-picks-list">
+                      {heroCollection.map((item) => (
+                        <button key={item.id} type="button" className="quick-pick-item" onClick={() => setSelectedMediaId(item.id)}>
+                          <span className="quick-pick-art" style={{ background: item.cardGradient }} />
+                          <span className="quick-pick-copy">
+                            <strong>{item.title}</strong>
+                            <small>
+                              {item.year} • {item.genres.slice(0, 2).join(" • ")}
+                            </small>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </article>
+                </aside>
+              </section>
+            )}
+
+            {continueWatching.length > 0 && (
+              <section className="section-block">
+                <div className="section-heading">
+                  <div>
+                    <span className="eyebrow">{t.continueWatching}</span>
+                    <h3>{activeProfile.name}</h3>
                   </div>
+                  <span className="status-pill">{continueWatching.length} items</span>
                 </div>
-                <div className="hero-side glass-panel">
-                  <div className="metric-card">
-                    <strong>Dual profile ready</strong>
-                    <span>{profiles.length} active profiles</span>
-                  </div>
-                  <div className="metric-card">
-                    <strong>Smart fallback</strong>
-                    <span>{providers.filter((provider) => provider.enabled).length} providers enabled</span>
-                  </div>
-                  <div className="metric-card">
-                    <strong>Continue watching</strong>
-                    <span>{continueWatching.length} active sessions</span>
-                  </div>
+                <div className="card-grid continue-grid">
+                  {continueWatching.map((item) => (
+                    <article key={item.id} className="media-card continue-card glass-panel">
+                      <div className="continue-card-header">
+                        <span className="continue-card-art" style={{ background: item.cardGradient }} />
+                        <div>
+                          <span className="eyebrow">{formatProgress(progressMap[item.id])}</span>
+                          <h4>{item.title}</h4>
+                          <p>{item.tagline}</p>
+                        </div>
+                      </div>
+                      <div className="card-footer">
+                        <div className="progress-track">
+                          <span style={{ width: formatProgress(progressMap[item.id]) }} />
+                        </div>
+                        <button type="button" className="inline-button" onClick={() => playMedia(item.id)}>
+                          {t.resume}
+                        </button>
+                      </div>
+                    </article>
+                  ))}
                 </div>
+              </section>
+            )}
+
+            {!filteredMedia.length && (
+              <article className="empty-state glass-panel">
+                <span className="eyebrow">Search</span>
+                <h3>No results</h3>
+                <p>Try a different title, category or genre.</p>
               </article>
             )}
 
-            <section className="section-block">
-              <div className="section-heading">
-                <div>
-                  <span className="eyebrow">{t.continueWatching}</span>
-                  <h3>{activeProfile.name}</h3>
-                </div>
-                <span className="status-pill">{continueWatching.length} items</span>
-              </div>
-              <div className="card-grid continue-grid">
-                {continueWatching.map((item) => (
-                  <article key={item.id} className="media-card glass-panel" style={{ background: item.cardGradient }}>
-                    <div>
-                      <span className="eyebrow">{formatProgress(progressMap[item.id])}</span>
-                      <h4>{item.title}</h4>
-                      <p>{item.tagline}</p>
-                    </div>
-                    <div className="card-footer">
-                      <div className="progress-track">
-                        <span style={{ width: formatProgress(progressMap[item.id]) }} />
-                      </div>
-                      <button type="button" className="inline-button" onClick={() => playMedia(item.id)}>
-                        {t.resume}
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            {sections.map(([sectionName, items]) => (
+            {discoverSections.map(([sectionName, items]) => (
               <section key={sectionName} className="section-block">
                 <div className="section-heading">
                   <div>
@@ -486,7 +561,7 @@ function App() {
                   <span className="status-pill">{items.length}</span>
                 </div>
                 <div className={`card-grid ${settings.viewMode === "classic" ? "classic-grid" : "poster-grid"}`}>
-                  {items.map((item) => {
+                  {items.slice(0, 4).map((item) => {
                     const itemDownload = downloads.find((entry) => entry.mediaId === item.id);
                     return (
                       <article key={`${sectionName}-${item.id}`} className="media-card poster-card glass-panel">
